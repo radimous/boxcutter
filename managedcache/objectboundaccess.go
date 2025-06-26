@@ -48,6 +48,8 @@ type ObjectBoundAccessManager[T RefType] interface {
 
 	// Source returns a controller-runtime source to watch from a controller.
 	Source(handler handler.EventHandler, predicates ...predicate.Predicate) source.Source
+
+	getWatchersForGVK(gvk schema.GroupVersionKind) (out []accessManagerKey)
 }
 
 // Accessor provides write and cached read access to the cluster.
