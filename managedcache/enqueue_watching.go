@@ -48,7 +48,7 @@ func NewEnqueueWatchingObjects(watcherRefGetter ownerRefGetter,
 }
 
 type ownerRefGetter interface {
-	getWatchersForGVK(gvk schema.GroupVersionKind) []accessManagerKey
+	getWatchersForGVK(gvk schema.GroupVersionKind) []AccessManagerKey
 }
 
 // Create implements handler.EventHandler.

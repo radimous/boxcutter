@@ -49,7 +49,7 @@ type ObjectBoundAccessManager[T RefType] interface {
 	// Source returns a controller-runtime source to watch from a controller.
 	Source(handler handler.EventHandler, predicates ...predicate.Predicate) source.Source
 
-	getWatchersForGVK(gvk schema.GroupVersionKind) (out []accessManagerKey)
+	getWatchersForGVK(gvk schema.GroupVersionKind) (out []AccessManagerKey)
 }
 
 // Accessor provides write and cached read access to the cluster.
@@ -75,7 +75,7 @@ func NewObjectBoundAccessManager[T RefType](
 		cacheSourcer: &cacheSource{},
 		newClient:    client.New,
 
-		accessors:         map[accessManagerKey]accessorEntry{},
+		accessors:         map[AccessManagerKey]accessorEntry{},
 		accessorRequestCh: make(chan accessorRequest[T]),
 		accessorStopCh:    make(chan accessorRequest[T]),
 	}
@@ -106,12 +106,12 @@ type objectBoundAccessManagerImpl[T RefType] struct {
 	newClient    newClientFunc
 
 	accessorsLock     sync.RWMutex
-	accessors         map[accessManagerKey]accessorEntry
+	accessors         map[AccessManagerKey]accessorEntry
 	accessorRequestCh chan accessorRequest[T]
 	accessorStopCh    chan accessorRequest[T]
 }
 
-type accessManagerKey struct {
+type AccessManagerKey struct {
 	// UID ensures a re-created object also gets it's own cache.
 	UID types.UID
 	schema.GroupVersionKind
@@ -120,7 +120,7 @@ type accessManagerKey struct {
 
 type accessorEntry struct {
 	accessor Accessor
-	users    map[accessManagerKey]sets.Set[schema.GroupVersionKind]
+	users    map[AccessManagerKey]sets.Set[schema.GroupVersionKind]
 	cancel   func()
 }
 
@@ -138,7 +138,7 @@ type accessorResponse struct {
 
 type cacheDone struct {
 	err error
-	key accessManagerKey
+	key AccessManagerKey
 }
 
 // implements Accessor interface.
@@ -313,7 +313,7 @@ func (m *objectBoundAccessManagerImpl[T]) handleAccessorRequest(
 
 	entry = accessorEntry{
 		accessor: a,
-		users:    map[accessManagerKey]sets.Set[schema.GroupVersionKind]{},
+		users:    map[AccessManagerKey]sets.Set[schema.GroupVersionKind]{},
 		cancel:   cancel,
 	}
 	if req.user != nil {
@@ -414,7 +414,7 @@ func (m *objectBoundAccessManagerImpl[T]) FreeWithUser(ctx context.Context, owne
 	return err
 }
 
-func (m *objectBoundAccessManagerImpl[T]) getWatchersForGVK(gvk schema.GroupVersionKind) (out []accessManagerKey) {
+func (m *objectBoundAccessManagerImpl[T]) getWatchersForGVK(gvk schema.GroupVersionKind) (out []AccessManagerKey) {
 	m.accessorsLock.RLock()
 	defer m.accessorsLock.RUnlock()
 
@@ -432,8 +432,8 @@ func (m *objectBoundAccessManagerImpl[T]) getWatchersForGVK(gvk schema.GroupVers
 	return out
 }
 
-func toAccessManagerKey[T RefType](owner T) accessManagerKey {
-	return accessManagerKey{
+func toAccessManagerKey[T RefType](owner T) AccessManagerKey {
+	return AccessManagerKey{
 		UID:              owner.GetUID(),
 		ObjectKey:        client.ObjectKeyFromObject(owner),
 		GroupVersionKind: owner.GetObjectKind().GroupVersionKind(),
