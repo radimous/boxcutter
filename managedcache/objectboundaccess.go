@@ -49,7 +49,7 @@ type ObjectBoundAccessManager[T RefType] interface {
 	// Source returns a controller-runtime source to watch from a controller.
 	Source(handler handler.EventHandler, predicates ...predicate.Predicate) source.Source
 
-	getWatchersForGVK(gvk schema.GroupVersionKind) (out []AccessManagerKey)
+	GetWatchersForGVK(gvk schema.GroupVersionKind) []AccessManagerKey
 }
 
 // Accessor provides write and cached read access to the cluster.
@@ -414,7 +414,7 @@ func (m *objectBoundAccessManagerImpl[T]) FreeWithUser(ctx context.Context, owne
 	return err
 }
 
-func (m *objectBoundAccessManagerImpl[T]) getWatchersForGVK(gvk schema.GroupVersionKind) (out []AccessManagerKey) {
+func (m *objectBoundAccessManagerImpl[T]) GetWatchersForGVK(gvk schema.GroupVersionKind) (out []AccessManagerKey) {
 	m.accessorsLock.RLock()
 	defer m.accessorsLock.RUnlock()
 
